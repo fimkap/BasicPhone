@@ -1,0 +1,53 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf360
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww12180\viewh11480\viewkind0
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\b\fs28 \cf0 Description
+\fs24 \
+\
+
+\b0 This sample shows how to make the most basic of VoIP applications for making an outgoing call or receiving an incoming call.  You'll need a PHP server for serving up the Capability Tokens and responding to requests from Twilio when calls are received.  \
+\
+You'll need to create a Twilio Application in your account, put 
+\b Server/auth.php 
+\b0 and 
+\b Server/basic-call.php
+\b0  up on a PHP-capable server, and then point the Twilio Application at 
+\b basic-call.php
+\b0 's public URL.\
+\
+Modify auth.php to use your Twilio Account SID, Auth Token, and Application SID that you just created.\
+\
+Then modify the getCapabilityToken in 
+\b BasicPhone.m
+\b0  to point to your public URL for 
+\b auth.php
+\b0 .\
+\
+
+\b Making an outgoing call:
+\b0   When you hit the "Call" button in the app, it will then make a call to your Twilio app that then makes a request to 
+\b basic-call.php
+\b0 .  The PHP will see that the "From" parameter is "client:basic", so it will speak a message to you.  If you want you can also modify the PHP code to call a phone number or other Twilio Client by providing a TwiML <Dial><Number>#######</Number></Dial> or <Dial><Client>Foo</Client></Dial> verb in place of the <Say> verb.  (Note that dialing a number requires the use of a callerId parameter in the <Dial> verb.)\
+\
+
+\b Receiving an incoming call:
+\b0  If you set up a Twilio phone number to point to the Twilio application above, then when a phone dials the number, Twilio will then make a request to 
+\b basic-call.php
+\b0 .   The PHP will see that the "From" parameter is a phone number and dial any registered client named "basic".  Either a purchased number or your sandbox number can be used.\
+
+\b \
+\
+
+\fs28 Prequisites
+\fs24 \
+
+\b0 \
+1. Install Xcode with at least iOS SDK 4.2 or higher. Xcode may be obtained from the Mac App Store or by downloading it from http://developer.apple.com.\
+\
+2. Get set up as a registered iOS developer with valid Provisioning Profile(s) for any devices you will be testing with. For more information on provisioning devices, please refer to Apple\'92s documentation \'93Managing Devices and Digital Identities\'94.\
+\
+3. Get a Twilio Account SID and Auth Token to initiate calls from your iOS device. You will find these under your Account Dashboard. If you don\'92t have an account, you can always sign up for a free trial account.\
+}
