@@ -27,6 +27,8 @@
 @synthesize device = _device;
 @synthesize connection = _connection;
 @synthesize pendingIncomingConnection = _pendingIncomingConnection;
+@synthesize ringbackTone;
+@synthesize username;
 
 #pragma mark -
 #pragma mark Initialization
@@ -37,6 +39,7 @@
 	{
 		_speakerEnabled = YES; // enable the speaker by default
 	}
+    //ringbackTone= [[NSBundle mainBundle] pathForResource:@"ringback-uk" ofType:@"mp3"];
 	return self;
 }
 
@@ -77,7 +80,9 @@
 	NSString *capabilityToken = nil;
 	//Make the URL Connection to your server
 //#warning Change this URL to point to the auth.php on your public server
-	NSURL *url = [NSURL URLWithString:@"http://87.69.174.80/auth.php?clientName=basic"];
+    NSString *urlClientName = [[NSString alloc] initWithFormat:@"http://87.69.174.80/auth.php?clientName=%@", username];
+    NSLog(@"url %@", urlClientName);
+	NSURL *url = [NSURL URLWithString:urlClientName];
 	NSURLResponse *response = nil;
 	NSData *data = [NSURLConnection sendSynchronousRequest:[NSURLRequest requestWithURL:url]
 										 returningResponse:&response error:error];
@@ -136,7 +141,14 @@
 		if(_connection)
 			[self disconnect];
 		
-		_connection = [_device connect:nil delegate:self];
+        
+        NSDictionary* parameters = nil;
+        NSString *phoneNumber = @"basic";
+        if ( [phoneNumber length] > 0 )
+        {
+            parameters = [NSDictionary dictionaryWithObject:phoneNumber forKey:@"PhoneNumber"];
+        }
+		_connection = [_device connect:parameters delegate:self];
 		[_connection retain];
 		
 		if ( !_connection ) // if a connection is established, connectionDidStartConnecting: gets invoked next

@@ -31,8 +31,9 @@
 	self.phone = [[[BasicPhone alloc] init] autorelease];
 	
 	self.viewController.phone = self.phone;
+    //[self.viewController getUserName];
 	
-	[self.phone login];
+	//[self.phone login];
 	
     return YES;
 }

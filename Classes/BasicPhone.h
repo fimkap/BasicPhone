@@ -12,11 +12,15 @@
 	TCConnection* _connection;
 	TCConnection* _pendingIncomingConnection;
 	BOOL _speakerEnabled;
+    NSString *ringbackTone;
+    NSString *username;
 }
 
 @property (nonatomic,retain) TCDevice* device;
 @property (nonatomic,retain) TCConnection* connection;
 @property (nonatomic,retain) TCConnection* pendingIncomingConnection;
+@property(readwrite, copy) NSString *ringbackTone;
+@property(readwrite, copy) NSString *username;
 
 -(void)login;
 

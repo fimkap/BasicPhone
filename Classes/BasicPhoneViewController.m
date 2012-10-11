@@ -6,6 +6,8 @@
 #import "BasicPhoneAppDelegate.h"
 #import "BasicPhoneNotifications.h"
 #import "BasicPhone.h"
+#import "AVFoundation/AVAudioPlayer.h"
+#import <AudioToolbox/AudioToolbox.h>
 
 @interface BasicPhoneViewController () // Internal methods that don't get exposed.
 
@@ -37,6 +39,7 @@
 @synthesize mainButton = _mainButton;
 @synthesize textView = _textView;
 @synthesize speakerSwitch = _speakerSwitch;
+@synthesize ringtoneSSID;
 
 #pragma mark -
 #pragma mark Application behavior
@@ -109,6 +112,12 @@
 											   object:nil];
     
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
+    
+    if (_phone.username == nil)
+    {
+        [self getUserName];
+    }
+    
 }
 
 -(void)viewDidAppear:(BOOL)animated
@@ -342,12 +351,76 @@
 		}
 		else if (self.phone.connection.state == TCConnectionStateConnected)
 		{
+            NSLog(@"dispose the sound");
+            AudioServicesDisposeSystemSoundID(ringtoneSSID);
+            
 			//Connection state is open, show in progress button
 			[self.mainButton setImage:[UIImage imageNamed:@"inprogress"] forState:UIControlStateNormal];
 		}
 		else
 		{
-			//Connection is in the middle of connecting. Show dialing button
+            // Fake ringback tone on early stage
+//            NSError *error = NULL;
+//            NSURL *url = [[NSURL alloc ] initWithString:_phone.ringbackTone];
+//            AVAudioPlayer *av = [[AVAudioPlayer alloc ] initWithContentsOfURL:url error:&error];
+//            [av setNumberOfLoops:-1];
+//            [av setDelegate:self];
+//            [av play];
+            
+            UInt32 sessionCategory;
+            UInt32 categorySize = sizeof(UInt32);
+            AudioSessionGetProperty (kAudioSessionProperty_AudioCategory, &categorySize,&sessionCategory);
+            NSLog(@"audio session %ld", sessionCategory);
+
+            switch(sessionCategory) {
+            case kAudioSessionCategory_AmbientSound:
+                NSLog(@"AmbientSound");
+                break;
+            case kAudioSessionCategory_SoloAmbientSound:
+                NSLog(@"SoloAmbientSound");
+                break;
+            case kAudioSessionCategory_MediaPlayback:
+                NSLog(@"MediaPlayback");
+                break;
+            case kAudioSessionCategory_RecordAudio:
+                NSLog(@"RecordAudio");
+                break;
+            case kAudioSessionCategory_PlayAndRecord:
+                NSLog(@"PlayAndRecord");
+                break;
+            case kAudioSessionCategory_AudioProcessing:
+                NSLog(@"AudioProcessing");
+                break;
+            default:
+                NSLog(@"Unknown!");
+            }
+
+              //_phone.ringbackTone = [[NSBundle mainBundle] pathForResource:@"ringback-uk" ofType:@"mp3"];
+              _phone.ringbackTone = [[NSBundle mainBundle] pathForResource:@"outgoing" ofType:@"wav"];
+              NSLog(@"tone path %@", _phone.ringbackTone);
+            
+            CFURLRef        myURLRef;
+            
+            myURLRef = CFURLCreateWithFileSystemPath (
+                                                      kCFAllocatorDefault,
+                                                      (CFStringRef)_phone.ringbackTone,
+                                                      kCFURLPOSIXPathStyle,
+                                                      FALSE
+                                                      );
+            OSStatus err = AudioServicesCreateSystemSoundID(myURLRef, &ringtoneSSID);
+            if (err)
+                NSLog(@"AudioServicesCreateSystemSoundID error");
+            CFRelease (myURLRef);
+            AudioServicesAddSystemSoundCompletion (
+                                                   ringtoneSSID,
+                                                   NULL,
+                                                   NULL,
+                                                   ringtoneCallback,
+                                                   NULL
+                                                   );
+            AudioServicesPlaySystemSound(ringtoneSSID);
+			
+            //Connection is in the middle of connecting. Show dialing button
 			[self.mainButton setImage:[UIImage imageNamed:@"dialing"] forState:UIControlStateNormal];
 		}
 	}
@@ -403,11 +476,27 @@
 	}
 }
 
+-(void)getUserName
+{
+    // Get user name. Make persistent.
+    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Username" message:@"Enter your user name" delegate:self cancelButtonTitle:@"Ready" otherButtonTitles:nil];
+    alert.alertViewStyle = UIAlertViewStylePlainTextInput;
+    [alert show];
+    [alert release];
+}
+
 #pragma mark -
 #pragma mark UIAlertViewDelegate
 
 - (void)alertView:(UIAlertView* )alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {
+    if ([alertView numberOfButtons] == 1)
+    {
+        _phone.username = [[NSString alloc] initWithString:[[alertView textFieldAtIndex:0] text]];
+        NSLog(@"Entered: %@",_phone.username);
+        [_phone login];
+        return;
+    }
 	if(buttonIndex==0)
 	{
 		//Accept button pressed
@@ -437,6 +526,11 @@
 - (void)dealloc 
 {
     [super dealloc];
+}
+
+static void ringtoneCallback (SystemSoundID  mySSID,void* inClientData)
+{
+    //AudioServicesDisposeSystemSound(mySSID);
 }
 
 @end
