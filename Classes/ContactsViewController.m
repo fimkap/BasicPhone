@@ -14,6 +14,8 @@
 
 @implementation ContactsViewController
 
+@synthesize ContactsTableView;
+
 - (id)initWithStyle:(UITableViewStyle)style
 {
     self = [super initWithStyle:style];
@@ -53,7 +55,7 @@
 {
 #warning Incomplete method implementation.
     // Return the number of rows in the section.
-    return 0;
+    return 10;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -65,6 +67,7 @@
     }
     
     // Configure the cell...
+    cell.textLabel.text = [NSString stringWithFormat:@"Cell %lu", (unsigned long)indexPath.row + 1];
     
     return cell;
 }
@@ -122,4 +125,12 @@
      */
 }
 
+- (void)dealloc {
+    [ContactsTableView release];
+    [super dealloc];
+}
+- (void)viewDidUnload {
+    [self setContactsTableView:nil];
+    [super viewDidUnload];
+}
 @end

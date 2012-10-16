@@ -8,6 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ContactsViewController : UITableViewController
+@interface ContactsViewController : UITableViewController <UITableViewDataSource> {
+    UITableView *ContactsTableView;
+}
+@property (retain, nonatomic) IBOutlet UITableView *ContactsTableView;
 
 @end
