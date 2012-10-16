@@ -6,8 +6,10 @@
 #import "BasicPhoneAppDelegate.h"
 #import "BasicPhoneNotifications.h"
 #import "BasicPhone.h"
+#import "ContactsViewController.h"
 #import "AVFoundation/AVAudioPlayer.h"
 #import <AudioToolbox/AudioToolbox.h>
+#import <UIKit/UIPickerView.h>
 
 @interface BasicPhoneViewController () // Internal methods that don't get exposed.
 
@@ -35,11 +37,13 @@
 
 @implementation BasicPhoneViewController
 
+@synthesize ringtoneSSID, contactPicker;
 @synthesize phone = _phone;
+@synthesize contacts = _contacts;
 @synthesize mainButton = _mainButton;
 @synthesize textView = _textView;
 @synthesize speakerSwitch = _speakerSwitch;
-@synthesize ringtoneSSID;
+@synthesize contactsList = _contactsList;
 
 #pragma mark -
 #pragma mark Application behavior
@@ -53,6 +57,7 @@
 -(void)viewDidLoad
 {
 	[super viewDidLoad];
+    //[self.view addSubview:self.contacts.ContactsTableView];
 
 	// Register for notifications that will be broadcast from the 
 	// BasicPhone model/controller.  These may be received on any
@@ -118,6 +123,21 @@
         [self getUserName];
     }
     
+    contactPicker.showsSelectionIndicator = YES;	// note this is default to NO
+	
+	// this view controller is the data source and delegate
+	contactPicker.delegate = self;
+	contactPicker.dataSource = self;
+	
+	// add this picker to our view controller, initially hidden
+	contactPicker.hidden = NO;
+	[self.view addSubview:contactPicker];
+    
+    //[_phone initContactsList];
+    _contactsList = [[NSMutableArray alloc]initWithObjects:@"Basic",@"Basicipod",nil];
+    
+    //_contactsList = [[UITableView alloc] initWithFrame:self.view.frame style:UITableViewStylePlain];
+
 }
 
 -(void)viewDidAppear:(BOOL)animated
@@ -136,6 +156,7 @@
 	self.textView = nil;
 	self.speakerSwitch = nil;
 	
+    [self setContactPicker:nil];
 	[super viewDidUnload];
 }
 
@@ -152,7 +173,7 @@
 	if (!basicPhone.connection || basicPhone.connection.state == TCConnectionStateDisconnected)
 	{
 		//Connection doesn't exist or is disconnected, so make a call
-		[basicPhone connect];
+		[basicPhone connect:[_contactsList objectAtIndex:[contactPicker selectedRowInComponent:0]]];
 	}
 	else
 	{
@@ -525,7 +546,26 @@
 
 - (void)dealloc 
 {
+    [contactPicker release];
     [super dealloc];
+}
+
+#pragma mark -
+#pragma mark Picker
+
+-(NSInteger) numberOfComponentsInPickerView:(UIPickerView*)pickerView
+{
+    return 1;
+}
+
+-(NSInteger)pickerView:(UIPickerView*)pickerView numberOfRowsInComponent:(NSInteger)component
+{
+    return _contactsList.count;
+}
+
+-(NSString*)pickerView:(UIPickerView*)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component
+{
+    return [_contactsList objectAtIndex:row];
 }
 
 static void ringtoneCallback (SystemSoundID  mySSID,void* inClientData)

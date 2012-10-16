@@ -14,6 +14,7 @@
 	BOOL _speakerEnabled;
     NSString *ringbackTone;
     NSString *username;
+    NSMutableArray* _contactsList;
 }
 
 @property (nonatomic,retain) TCDevice* device;
@@ -21,6 +22,7 @@
 @property (nonatomic,retain) TCConnection* pendingIncomingConnection;
 @property(readwrite, copy) NSString *ringbackTone;
 @property(readwrite, copy) NSString *username;
+@property (nonatomic,retain) NSArray* contactsList;
 
 -(void)login;
 
@@ -28,9 +30,10 @@
 -(void)setSpeakerEnabled:(BOOL)enabled;
 
 //TCConnection Methods
--(void)connect;
+-(void)connect:(NSString*)dst;
 -(void)disconnect;
 -(void)acceptConnection;
 -(void)ignoreIncomingConnection;
+-(void)initContactsList;
 
 @end

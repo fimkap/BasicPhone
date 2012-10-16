@@ -6,23 +6,30 @@
 #import <AudioToolbox/AudioToolbox.h>
 
 @class BasicPhone;
+@class ContactsViewController;
 
 @interface BasicPhoneViewController : UIViewController
 {
 	BasicPhone* _phone;
+    ContactsViewController *_contacts;
 	
 	UIButton* _mainButton;
 	UITextView* _textView;
 	UISwitch* _speakerSwitch;
 	UIAlertView* _alertView;
     SystemSoundID ringtoneSSID;
+    NSMutableArray* _contactsList;
+    //UITableView* _contactsList;
 }
 
 @property (nonatomic,retain) IBOutlet UIButton* mainButton;
 @property (nonatomic,retain) IBOutlet UITextView* textView;
 @property (nonatomic,retain) IBOutlet UISwitch* speakerSwitch;
 @property (nonatomic,retain) BasicPhone* phone;
+@property (nonatomic,retain) ContactsViewController* contacts;
 @property(readwrite) SystemSoundID ringtoneSSID;
+@property (nonatomic,retain) NSArray* contactsList;
+@property (retain, nonatomic) IBOutlet UIPickerView *contactPicker;
 
 //Button actions
 -(IBAction)mainButtonPressed:(id)sender;

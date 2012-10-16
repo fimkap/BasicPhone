@@ -4,12 +4,14 @@
  
 #import "BasicPhoneAppDelegate.h"
 #import "BasicPhoneViewController.h"
+#import "ContactsViewController.h"
 #import "BasicPhone.h" 
 
 @implementation BasicPhoneAppDelegate
 
 @synthesize window = _window;
 @synthesize viewController = _viewController;
+@synthesize contactsViewController = _contactsViewController;
 @synthesize phone = _phone;
 
 
@@ -20,6 +22,7 @@
 {    
 	// Set the view controller as the window's root view controller and display.
     self.window.rootViewController = self.viewController;
+    //self.window.rootViewController = self.contactsViewController;
     [self.window makeKeyAndVisible];
 	
 	// Initialize the BasicPhone object that coordinates with the Twilio Client SDK.
@@ -75,6 +78,7 @@
 - (void)dealloc 
 {
     [_viewController release];
+    [_contactsViewController release];
 	[_window release];
 	
 	[_phone release];

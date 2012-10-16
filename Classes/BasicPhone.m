@@ -29,6 +29,7 @@
 @synthesize pendingIncomingConnection = _pendingIncomingConnection;
 @synthesize ringbackTone;
 @synthesize username;
+@synthesize contactsList = _contactsList;
 
 #pragma mark -
 #pragma mark Initialization
@@ -122,7 +123,7 @@
 #pragma mark -
 #pragma mark TCConnection Implementation
 
--(void)connect
+-(void)connect:(NSString*)dst
 {
 	// First check to see if the token we have is valid, and if not, refresh it.
 	// Your own client may ask the user to re-authenticate to obtain a new token depending on
@@ -141,9 +142,9 @@
 		if(_connection)
 			[self disconnect];
 		
-        
+        NSLog(@"Call %@",dst);
         NSDictionary* parameters = nil;
-        NSString *phoneNumber = @"basic";
+        NSString *phoneNumber = dst;
         if ( [phoneNumber length] > 0 )
         {
             parameters = [NSDictionary dictionaryWithObject:phoneNumber forKey:@"PhoneNumber"];
@@ -188,12 +189,34 @@
 
 -(void)device:(TCDevice *)device didReceivePresenceUpdate:(TCPresenceEvent *)presenceEvent
 {
+    NSString* contactObjectON = [[NSString alloc] initWithFormat:@"ON %@", presenceEvent.name];
+    NSString* contactObjectOFF = [[NSString alloc] initWithFormat:@"OFF %@", presenceEvent.name];
     if (presenceEvent.available) {
+//        NSInteger index = [_contactsList indexOfObject:contactObjectOFF];
+//        if (index != NSNotFound)
+//        {
+//            [_contactsList replaceObjectAtIndex:index withObject:contactObjectON];
+//        }
+//        else
+//        {
+//            [_contactsList addObject:contactObjectON];
+//        }
         NSLog(@"name: %@ online", presenceEvent.name);
     }
     else {
+//        NSInteger index = [_contactsList indexOfObject:contactObjectON];
+//        if (index != NSNotFound)
+//        {
+//            [_contactsList replaceObjectAtIndex:index withObject:contactObjectOFF];
+//        }
+//        else
+//        {
+//            [_contactsList addObject:contactObjectOFF];
+//        }
         NSLog(@"name: %@ offline", presenceEvent.name);
     }
+    
+    // TODO release strings
 }
 
 -(void)deviceDidStartListeningForIncomingConnections:(TCDevice*)device
@@ -322,6 +345,29 @@
 										 code:response.statusCode
 									 userInfo:errorUserInfo];
 	return error;	
+}
+
+//#pragma mark -
+//#pragma mark Picker
+//
+//-(NSInteger) numberOfComponentsInPickerView:(UIPickerView*)pickerView
+//{
+//    return 1;
+//}
+//
+//-(NSInteger)pickerView:(UIPickerView*)pickerView numberOfRowsInComponent:(NSInteger)component
+//{
+//    return _contactsList.count;
+//}
+//
+//-(NSString*)pickerView:(UIPickerView*)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component
+//{
+//    return [_contactsList objectAtIndex:row];
+//}
+
+-(void)initContactsList
+{
+    _contactsList = [[NSMutableArray alloc]initWithObjects:@"Basic",@"Basicipod",nil];
 }
 
 #pragma mark -
