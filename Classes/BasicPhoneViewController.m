@@ -32,6 +32,7 @@
 
 -(void)deviceDidStartListeningForIncomingConnections:(NSNotification*)notification;
 -(void)deviceDidStopListeningForIncomingConnections:(NSNotification*)notification;
+-(void)deviceDidReceivePresenceUpdate:(NSNotification*)notification;
 
 @end
 
@@ -115,6 +116,10 @@
 											 selector:@selector(deviceDidStopListeningForIncomingConnections:)
 												 name:BPDeviceDidStopListeningForIncomingConnections
 											   object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+											 selector:@selector(deviceDidReceivePresenceUpdate:)
+												 name:BPDeviceDidReceivePresenceUpdate
+											   object:nil];
     
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
     
@@ -168,12 +173,15 @@
 	//Action for button on main view
 	BasicPhoneAppDelegate* delegate = (BasicPhoneAppDelegate*)[UIApplication sharedApplication].delegate;
 	BasicPhone* basicPhone = delegate.phone;
+    
+    NSString* contact = [_contactsList objectAtIndex:[contactPicker selectedRowInComponent:0]];
+    //NSLog(@"contact|%@", [contact substringFromIndex:4]);
 	
 	//Perform correct button function based on current connection
 	if (!basicPhone.connection || basicPhone.connection.state == TCConnectionStateDisconnected)
 	{
 		//Connection doesn't exist or is disconnected, so make a call
-		[basicPhone connect:[_contactsList objectAtIndex:[contactPicker selectedRowInComponent:0]]];
+		[basicPhone connect:[contact substringFromIndex:4]];
 	}
 	else
 	{
@@ -348,6 +356,42 @@
 
 	[self addStatusMessage:@"-Pending connection did disconnect"];
 	[self syncMainButton];	
+}
+
+-(void)deviceDidReceivePresenceUpdate:(NSNotification*)notification
+{
+	TCPresenceEvent* presenceEvent = [[notification userInfo] objectForKey:@"presenceEvent"];
+
+    NSString* contactObjectON = [[NSString alloc] initWithFormat:@"ON  %@", presenceEvent.name];
+    NSString* contactObjectOFF = [[NSString alloc] initWithFormat:@"OFF %@", presenceEvent.name];
+    if (presenceEvent.available) {
+        NSInteger index = [_contactsList indexOfObject:contactObjectOFF];
+        if (index != NSNotFound)
+        {
+            [_contactsList replaceObjectAtIndex:index withObject:contactObjectON];
+        }
+        else
+        {
+            [_contactsList addObject:contactObjectON];
+        }
+        NSLog(@"name in View: %@ online", presenceEvent.name);
+    }
+    else {
+        NSInteger index = [_contactsList indexOfObject:contactObjectON];
+        if (index != NSNotFound)
+        {
+            [_contactsList replaceObjectAtIndex:index withObject:contactObjectOFF];
+        }
+        else
+        {
+            [_contactsList addObject:contactObjectOFF];
+        }
+        NSLog(@"name in View: %@ offline", presenceEvent.name);
+    }
+
+    [contactPicker reloadAllComponents];
+    
+    // TODO release strings
 }
 
 

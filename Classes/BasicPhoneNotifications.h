@@ -20,3 +20,5 @@ extern NSString* const BPConnectionDidFailWithError;
 
 extern NSString* const BPDeviceDidStartListeningForIncomingConnections;
 extern NSString* const BPDeviceDidStopListeningForIncomingConnections; // has an optional "error" payload in the userInfo
+
+extern NSString* const BPDeviceDidReceivePresenceUpdate;

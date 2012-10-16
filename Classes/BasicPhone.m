@@ -189,34 +189,17 @@
 
 -(void)device:(TCDevice *)device didReceivePresenceUpdate:(TCPresenceEvent *)presenceEvent
 {
-    NSString* contactObjectON = [[NSString alloc] initWithFormat:@"ON %@", presenceEvent.name];
-    NSString* contactObjectOFF = [[NSString alloc] initWithFormat:@"OFF %@", presenceEvent.name];
+	NSDictionary* userInfo = nil;
+    userInfo = [NSDictionary dictionaryWithObject:presenceEvent forKey:@"presenceEvent"];
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:BPDeviceDidReceivePresenceUpdate object:nil userInfo:userInfo];
+
     if (presenceEvent.available) {
-//        NSInteger index = [_contactsList indexOfObject:contactObjectOFF];
-//        if (index != NSNotFound)
-//        {
-//            [_contactsList replaceObjectAtIndex:index withObject:contactObjectON];
-//        }
-//        else
-//        {
-//            [_contactsList addObject:contactObjectON];
-//        }
         NSLog(@"name: %@ online", presenceEvent.name);
     }
     else {
-//        NSInteger index = [_contactsList indexOfObject:contactObjectON];
-//        if (index != NSNotFound)
-//        {
-//            [_contactsList replaceObjectAtIndex:index withObject:contactObjectOFF];
-//        }
-//        else
-//        {
-//            [_contactsList addObject:contactObjectOFF];
-//        }
         NSLog(@"name: %@ offline", presenceEvent.name);
     }
-    
-    // TODO release strings
 }
 
 -(void)deviceDidStartListeningForIncomingConnections:(TCDevice*)device

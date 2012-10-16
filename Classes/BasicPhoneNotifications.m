@@ -21,3 +21,5 @@ NSString* const BPConnectionDidFailWithError					= @"BPConnectionDidFailWithErro
 
 NSString* const BPDeviceDidStartListeningForIncomingConnections	= @"BPDeviceDidStartListeningForIncomingConnections";
 NSString* const BPDeviceDidStopListeningForIncomingConnections	= @"BPDeviceDidStopListeningForIncomingConnections";
+
+NSString* const BPDeviceDidReceivePresenceUpdate	= @"BPDeviceDidReceivePresenceUpdate";
