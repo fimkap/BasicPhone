@@ -229,9 +229,16 @@
 	// Initalize pending incoming conneciton
 	_pendingIncomingConnection = [connection retain];
 	[_pendingIncomingConnection setDelegate:self];
+    
+    NSString* from = [connection.parameters objectForKey:@"From"];
+    // Remote client: from the from string
+    NSDictionary* userInfo = nil;
+    userInfo = [NSDictionary dictionaryWithObject:[from substringFromIndex:7] forKey:@"from"];
+    
+    //NSLog(@"Caller %@", [connection.parameters objectForKey:@"From"]);
 	
 	// Send a notification out that we've received this.
-	[[NSNotificationCenter defaultCenter] postNotificationName:BPPendingIncomingConnectionReceived object:nil];
+	[[NSNotificationCenter defaultCenter] postNotificationName:BPPendingIncomingConnectionReceived object:nil userInfo:userInfo];
 }
 
 #pragma mark -

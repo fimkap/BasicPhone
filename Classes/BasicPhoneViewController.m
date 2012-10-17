@@ -15,6 +15,7 @@
 
 -(void)syncMainButton;
 -(void)addStatusMessage:(NSString*)message;
+-(void)constructAlert:(NSString*)from;
 
 // notifications
 -(void)loginDidStart:(NSNotification*)notification;
@@ -331,8 +332,10 @@
 
 -(void)pendingIncomingConnectionReceived:(NSNotification*)notification
 {
+    // CallerID
+    NSString* from = [[notification userInfo] objectForKey:@"from"];
 	//Show alert view asking if user wants to accept or ignore call
-	[self performSelectorOnMainThread:@selector(constructAlert) withObject:nil waitUntilDone:NO];
+	[self performSelectorOnMainThread:@selector(constructAlert:) withObject:from waitUntilDone:NO];
 	
 	//Check for background support
 	if ( ![self isForeground] )
@@ -347,7 +350,9 @@
 			[app cancelAllLocalNotifications];
 		}
 		
-		notification.alertBody = @"Incoming Call";
+        NSString* alertBody = [[NSString alloc] initWithFormat:@"Call from %@", from];
+		notification.alertBody = alertBody;
+        //[alertBody release];
         //notification.soundName = UILocalNotificationDefaultSoundName;
 		
 		[app presentLocalNotificationNow:notification];
@@ -386,7 +391,7 @@
         {
             [_contactsList replaceObjectAtIndex:index withObject:contactObjectON];
         }
-        else
+        else if ([_contactsList indexOfObject:contactObjectON] == NSNotFound)
         {
             [_contactsList addObject:contactObjectON];
         }
@@ -398,7 +403,7 @@
         {
             [_contactsList replaceObjectAtIndex:index withObject:contactObjectOFF];
         }
-        else
+        else if ([_contactsList indexOfObject:contactObjectOFF] == NSNotFound)
         {
             [_contactsList addObject:contactObjectOFF];
         }
@@ -538,10 +543,10 @@
 #pragma mark -
 #pragma mark UIAlertView
 
--(void)constructAlert
+-(void)constructAlert:(NSString*)from
 {
 	_alertView = [[[UIAlertView alloc] initWithTitle:@"Incoming Call" 
-											 message:@"Accept or Ignore?"
+											 message:from
 											delegate:self 
 								   cancelButtonTitle:nil 
 								   otherButtonTitles:@"Accept",@"Ignore",nil] autorelease];
