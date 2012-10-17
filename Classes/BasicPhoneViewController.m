@@ -34,6 +34,9 @@
 -(void)deviceDidStopListeningForIncomingConnections:(NSNotification*)notification;
 -(void)deviceDidReceivePresenceUpdate:(NSNotification*)notification;
 
+-(void) writeUsernameToFile:(NSString*)username;
+-(NSString*) readUsernameFromFile;
+
 @end
 
 @implementation BasicPhoneViewController
@@ -45,6 +48,7 @@
 @synthesize textView = _textView;
 @synthesize speakerSwitch = _speakerSwitch;
 @synthesize contactsList = _contactsList;
+@synthesize switchLogButton = _switchLogButton;
 
 #pragma mark -
 #pragma mark Application behavior
@@ -123,10 +127,8 @@
     
     [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
     
-    if (_phone.username == nil)
-    {
-        [self getUserName];
-    }
+   
+    [self getUserName];
     
     contactPicker.showsSelectionIndicator = YES;	// note this is default to NO
 	
@@ -139,7 +141,6 @@
 	[self.view addSubview:contactPicker];
     
     //[_phone initContactsList];
-    _contactsList = [[NSMutableArray alloc]initWithObjects:@"Basic",@"Basicipod",nil];
     
     //_contactsList = [[UITableView alloc] initWithFrame:self.view.frame style:UITableViewStylePlain];
 
@@ -162,6 +163,7 @@
 	self.speakerSwitch = nil;
 	
     [self setContactPicker:nil];
+    [self setSwitchLogButton:nil];
 	[super viewDidUnload];
 }
 
@@ -196,6 +198,20 @@
 	BasicPhone* basicPhone = delegate.phone;
 
 	[basicPhone setSpeakerEnabled:self.speakerSwitch.on];
+}
+
+- (IBAction)switchLog:(id)sender
+{
+    if (contactPicker.hidden)
+    {
+        [self.switchLogButton setTitle:@"Log" forState:UIControlStateNormal];
+        contactPicker.hidden = NO;
+    }
+    else
+    {
+        [self.switchLogButton setTitle:@"Contacts" forState:UIControlStateNormal];
+        contactPicker.hidden = YES;
+    }
 }
 
 #pragma mark -
@@ -544,10 +560,22 @@
 -(void)getUserName
 {
     // Get user name. Make persistent.
-    UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Username" message:@"Enter your user name" delegate:self cancelButtonTitle:@"Ready" otherButtonTitles:nil];
-    alert.alertViewStyle = UIAlertViewStylePlainTextInput;
-    [alert show];
-    [alert release];
+    _phone.username = [self readUsernameFromFile];
+    if (_phone.username == nil)
+    {
+        UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Username" message:@"Enter your user name" delegate:self cancelButtonTitle:@"Ready" otherButtonTitles:nil];
+        alert.alertViewStyle = UIAlertViewStylePlainTextInput;
+        [alert show];
+        [alert release];
+    }
+    else
+    {
+        // Enter yourself into Picker list with OFF until presence update comes
+        NSString* myself = [[NSString alloc] initWithFormat:@"OFF %@", _phone.username];
+        _contactsList = [[NSMutableArray alloc]initWithObjects:myself,nil];
+        [contactPicker reloadAllComponents];
+        [_phone login]; // check it
+    }
 }
 
 #pragma mark -
@@ -559,6 +587,11 @@
     {
         _phone.username = [[NSString alloc] initWithString:[[alertView textFieldAtIndex:0] text]];
         NSLog(@"Entered: %@",_phone.username);
+        [self writeUsernameToFile:_phone.username];
+        // Enter yourself into Picker list with OFF until presence update comes
+        NSString* myself = [[NSString alloc] initWithFormat:@"OFF %@", _phone.username];
+        _contactsList = [[NSMutableArray alloc]initWithObjects:myself,nil];
+        [contactPicker reloadAllComponents];
         [_phone login];
         return;
     }
@@ -590,7 +623,9 @@
 
 - (void)dealloc 
 {
+    // Release array with strings TODO
     [contactPicker release];
+    [_switchLogButton release];
     [super dealloc];
 }
 
@@ -615,6 +650,40 @@
 static void ringtoneCallback (SystemSoundID  mySSID,void* inClientData)
 {
     //AudioServicesDisposeSystemSound(mySSID);
+}
+
+#pragma mark -
+#pragma mark Auxillary
+
+//Method writes a string to a text file
+-(void) writeUsernameToFile:(NSString*)username
+{
+    //get the documents directory:
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    
+    //make a file name to write the data to using the documents directory:
+    NSString *fileName = [NSString stringWithFormat:@"%@/username.txt",documentsDirectory];
+    //save content to the documents directory
+    [username writeToFile:fileName
+                    atomically:NO
+                    encoding:NSStringEncodingConversionAllowLossy
+                    error:nil];
+}
+
+//Method retrieves content from documents directory and
+//displays it in an alert
+-(NSString*) readUsernameFromFile
+{
+    //get the documents directory:
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    
+    NSString *fileName = [NSString stringWithFormat:@"%@/username.txt",documentsDirectory];
+    return [[NSString alloc] initWithContentsOfFile:fileName usedEncoding:nil error:nil];
+    
+    //[content release];
+    
 }
 
 @end

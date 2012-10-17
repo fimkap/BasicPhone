@@ -19,6 +19,7 @@
 	UIAlertView* _alertView;
     SystemSoundID ringtoneSSID;
     NSMutableArray* _contactsList;
+    UIButton* _switchLogButton;
     //UITableView* _contactsList;
 }
 
@@ -30,10 +31,13 @@
 @property(readwrite) SystemSoundID ringtoneSSID;
 @property (nonatomic,retain) NSArray* contactsList;
 @property (retain, nonatomic) IBOutlet UIPickerView *contactPicker;
+@property (retain, nonatomic) IBOutlet UIButton *switchLogButton;
 
 //Button actions
 -(IBAction)mainButtonPressed:(id)sender;
 -(IBAction)speakerSwitchPressed:(id)sender;
+- (IBAction)switchLog:(id)sender;
+
 
 -(void)getUserName;
 
