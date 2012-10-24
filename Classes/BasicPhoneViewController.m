@@ -38,6 +38,7 @@
 -(void) writeUsernameToFile:(NSString*)username;
 -(NSString*) readUsernameFromFile;
 
+
 @end
 
 @implementation BasicPhoneViewController
@@ -141,6 +142,11 @@
 	contactPicker.hidden = NO;
 	[self.view addSubview:contactPicker];
     
+    //UInt32 sessionCategory = kAudioSessionCategory_PlayAndRecord;
+    
+    //AudioSessionSetProperty (kAudioSessionProperty_AudioCategory, sizeof (sessionCategory),&sessionCategory);
+    //AudioSessionSetActive (true);
+    
     //[_phone initContactsList];
     
     //_contactsList = [[UITableView alloc] initWithFrame:self.view.frame style:UITableViewStylePlain];
@@ -198,29 +204,29 @@
 	BasicPhoneAppDelegate* delegate = (BasicPhoneAppDelegate*)[UIApplication sharedApplication].delegate;
 	BasicPhone* basicPhone = delegate.phone;
     
-    _phone.ringbackTone = [[NSBundle mainBundle] pathForResource:@"outgoing" ofType:@"wav"];
-    NSLog(@"tone path %@", _phone.ringbackTone);
-    
-    CFURLRef        myURLRef;
-    
-    myURLRef = CFURLCreateWithFileSystemPath (
-                                              kCFAllocatorDefault,
-                                              (CFStringRef)_phone.ringbackTone,
-                                              kCFURLPOSIXPathStyle,
-                                              FALSE
-                                              );
-    OSStatus err = AudioServicesCreateSystemSoundID(myURLRef, &ringtoneSSID);
-    if (err)
-        NSLog(@"AudioServicesCreateSystemSoundID error");
-    CFRelease (myURLRef);
-    AudioServicesAddSystemSoundCompletion (
-                                           ringtoneSSID,
-                                           NULL,
-                                           NULL,
-                                           ringtoneCallback,
-                                           NULL
-                                           );
-    AudioServicesPlaySystemSound(ringtoneSSID);
+//    _phone.ringbackTone = [[NSBundle mainBundle] pathForResource:@"outgoing" ofType:@"wav"];
+//    NSLog(@"tone path %@", _phone.ringbackTone);
+//    
+//    CFURLRef        myURLRef;
+//    
+//    myURLRef = CFURLCreateWithFileSystemPath (
+//                                              kCFAllocatorDefault,
+//                                              (CFStringRef)_phone.ringbackTone,
+//                                              kCFURLPOSIXPathStyle,
+//                                              FALSE
+//                                              );
+//    OSStatus err = AudioServicesCreateSystemSoundID(myURLRef, &ringtoneSSID);
+//    if (err)
+//        NSLog(@"AudioServicesCreateSystemSoundID error");
+//    CFRelease (myURLRef);
+//    AudioServicesAddSystemSoundCompletion (
+//                                           ringtoneSSID,
+//                                           NULL,
+//                                           NULL,
+//                                           ringtoneCallback,
+//                                           NULL
+//                                           );
+//    AudioServicesPlaySystemSound(ringtoneSSID);
 
 	[basicPhone setSpeakerEnabled:self.speakerSwitch.on];
 }
@@ -361,10 +367,41 @@
     NSString* from = [[notification userInfo] objectForKey:@"from"];
 	//Show alert view asking if user wants to accept or ignore call
 	[self performSelectorOnMainThread:@selector(constructAlert:) withObject:from waitUntilDone:NO];
+
+    
 	
 	//Check for background support
 	if ( ![self isForeground] )
 	{
+        _phone.ringbackTone = [[NSBundle mainBundle] pathForResource:@"ringtone" ofType:@"aif"];
+        //NSLog(@"tone path %@", _phone.ringbackTone);
+        
+        CFURLRef        myURLRef;
+        
+        myURLRef = CFURLCreateWithFileSystemPath (
+                                                  kCFAllocatorDefault,
+                                                  (CFStringRef)_phone.ringbackTone,
+                                                  kCFURLPOSIXPathStyle,
+                                                  FALSE
+                                                  );
+        AudioServicesCreateSystemSoundID(myURLRef, &ringtoneSSID);
+        //if (err)
+        //   NSLog(@"AudioServicesCreateSystemSoundID error");
+        CFRelease (myURLRef);
+        AudioServicesAddSystemSoundCompletion (
+                                               ringtoneSSID,
+                                               NULL,
+                                               NULL,
+                                               ringtoneCallback,
+                                               NULL
+                                               );
+        AudioServicesPlaySystemSound(ringtoneSSID);
+        
+        AudioSessionSetActive (true);
+        UInt32 sessionCategory = kAudioSessionCategory_PlayAndRecord;
+        
+        AudioSessionSetProperty (kAudioSessionProperty_AudioCategory, sizeof (sessionCategory),&sessionCategory);
+        
 		//App is not in the foreground, so send LocalNotification
 		UIApplication* app = [UIApplication sharedApplication];
 		UILocalNotification* notification = [[UILocalNotification alloc] init];
@@ -379,13 +416,14 @@
 		notification.alertBody = alertBody;
         //[alertBody release];
         //notification.soundName = UILocalNotificationDefaultSoundName;
-        notification.soundName = [[NSBundle mainBundle] pathForResource:@"outgoing" ofType:@"wav"];
+        //notification.soundName = [[NSBundle mainBundle] pathForResource:@"outgoing" ofType:@"wav"];
 		
 		[app presentLocalNotificationNow:notification];
 		[notification release];
 	}
 	
-	[self addStatusMessage:@"-Received inbound connection"];
+	//[self addStatusMessage:@"-Received inbound connection from"];
+    [self addStatusMessage:[[NSString alloc] initWithFormat:@"#### Received inbound connection from %@", from]];
 	[self syncMainButton];	
 }
 
@@ -528,9 +566,12 @@
 		[self performSelectorOnMainThread:@selector(addStatusMessage:) withObject:message waitUntilDone:NO];
 		return;
 	}
+    
+    NSDateFormatter* dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"MM-dd HH:mm:ss"];
 	
 	//Update the text view to tell the user what the phone is doing
-	self.textView.text = [self.textView.text stringByAppendingFormat:@"\n%@",message];
+	self.textView.text = [self.textView.text stringByAppendingFormat:@"\n[%@] %@",[dateFormatter stringFromDate:[NSDate date]],message];
 	
 	//Scroll textview automatically for readability
 	[self.textView scrollRangeToVisible:NSMakeRange([self.textView.text length], 0)];
@@ -598,6 +639,7 @@
     }
 	if(buttonIndex==0)
 	{
+        AudioServicesDisposeSystemSoundID(ringtoneSSID);
 		//Accept button pressed
 		if(!self.phone.connection)
 		{
@@ -614,6 +656,7 @@
 	}
 	else
 	{
+        AudioServicesDisposeSystemSoundID(ringtoneSSID);
 		// We don't release until after the delegate callback for connectionDidConnect:
 		[self.phone ignoreIncomingConnection];
 	}
@@ -650,6 +693,7 @@
 
 static void ringtoneCallback (SystemSoundID  mySSID,void* inClientData)
 {
+    //AudioServicesPlaySystemSound(mySSID);
     //AudioServicesDisposeSystemSound(mySSID);
 }
 
