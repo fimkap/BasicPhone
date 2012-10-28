@@ -81,7 +81,7 @@
 	NSString *capabilityToken = nil;
 	//Make the URL Connection to your server
 //#warning Change this URL to point to the auth.php on your public server
-    NSString *urlClientName = [[NSString alloc] initWithFormat:@"http://87.69.174.80/auth.php?clientName=%@", username];
+    NSString *urlClientName = [[NSString alloc] initWithFormat:@"http://87.69.174.80/auth-upgrade.php?clientName=xxx_%@", username];
     NSLog(@"url %@", urlClientName);
 	NSURL *url = [NSURL URLWithString:urlClientName];
 	NSURLResponse *response = nil;
@@ -233,7 +233,7 @@
     NSString* from = [connection.parameters objectForKey:@"From"];
     // Remote client: from the from string
     NSDictionary* userInfo = nil;
-    userInfo = [NSDictionary dictionaryWithObject:[from substringFromIndex:7] forKey:@"from"];
+    userInfo = [NSDictionary dictionaryWithObject:[from substringFromIndex:11] forKey:@"from"];
     
     //NSLog(@"Caller %@", [connection.parameters objectForKey:@"From"]);
 	

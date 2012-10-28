@@ -185,12 +185,13 @@
     
     NSString* contact = [_contactsList objectAtIndex:[contactPicker selectedRowInComponent:0]];
     //NSLog(@"contact|%@", [contact substringFromIndex:4]);
+    NSString* contactWithPrefix = [[NSString alloc] initWithFormat:@"xxx_%@",[contact substringFromIndex:4]];
 	
 	//Perform correct button function based on current connection
 	if (!basicPhone.connection || basicPhone.connection.state == TCConnectionStateDisconnected)
 	{
 		//Connection doesn't exist or is disconnected, so make a call
-		[basicPhone connect:[contact substringFromIndex:4]];
+		[basicPhone connect:contactWithPrefix];
 	}
 	else
 	{
@@ -446,9 +447,20 @@
 -(void)deviceDidReceivePresenceUpdate:(NSNotification*)notification
 {
 	TCPresenceEvent* presenceEvent = [[notification userInfo] objectForKey:@"presenceEvent"];
+    
+    NSString* prefix = @"xxx_";
+    // Filter out all client but starting with the prefix
+    if ([presenceEvent.name length] < 5)
+    {
+        return;
+    }
+    if (![prefix isEqualToString:[presenceEvent.name substringToIndex:4]])
+    {
+        return;
+    }
 
-    NSString* contactObjectON = [[NSString alloc] initWithFormat:@"ON  %@", presenceEvent.name];
-    NSString* contactObjectOFF = [[NSString alloc] initWithFormat:@"OFF %@", presenceEvent.name];
+    NSString* contactObjectON = [[NSString alloc] initWithFormat:@"ON  %@", [presenceEvent.name substringFromIndex:4]];
+    NSString* contactObjectOFF = [[NSString alloc] initWithFormat:@"OFF %@", [presenceEvent.name substringFromIndex:4]];
     if (presenceEvent.available) {
         NSInteger index = [_contactsList indexOfObject:contactObjectOFF];
         if (index != NSNotFound)
@@ -501,8 +513,15 @@
 		}
 		else if (self.phone.connection.state == TCConnectionStateConnected)
 		{
-            NSLog(@"dispose the sound");
-            //AudioServicesDisposeSystemSoundID(ringtoneSSID);
+//            NSLog(@"dispose the sound");
+//            AudioServicesDisposeSystemSoundID(ringtoneSSID);
+//            OSStatus error = 0;
+//            UInt32 allowMixing = false;
+//            
+//            error = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
+//            if (error)
+//                NSLog(@"AudioSessionSetProperty set to false failed");
+
             
 			//Connection state is open, show in progress button
 			[self.mainButton setImage:[UIImage imageNamed:@"inprogress"] forState:UIControlStateNormal];
@@ -510,10 +529,13 @@
 		else
 		{
             // Fake ringback tone on early stage
+//            OSStatus error = 0;
+//            UInt32 allowMixing = true;
+//            
+//            error = AudioSessionSetProperty(kAudioSessionProperty_OverrideCategoryMixWithOthers, sizeof(allowMixing), &allowMixing);
+//            if (error)
+//                NSLog(@"AudioSessionSetProperty failed");
 
-//            OSStatus result =	AudioSessionSetActive (false);
-//            if (result)
-//                NSLog(@"ERROR AudioSessionSetActive!\n");
 
               //_phone.ringbackTone = [[NSBundle mainBundle] pathForResource:@"ringback-uk" ofType:@"mp3"];
 //              _phone.ringbackTone = [[NSBundle mainBundle] pathForResource:@"outgoing" ofType:@"wav"];
@@ -527,8 +549,8 @@
 //                                                      kCFURLPOSIXPathStyle,
 //                                                      FALSE
 //                                                      );
-//            OSStatus err = AudioServicesCreateSystemSoundID(myURLRef, &ringtoneSSID);
-//            if (err)
+//            error = AudioServicesCreateSystemSoundID(myURLRef, &ringtoneSSID);
+//            if (error)
 //                NSLog(@"AudioServicesCreateSystemSoundID error");
 //            CFRelease (myURLRef);
 //            AudioServicesAddSystemSoundCompletion (
